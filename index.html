@@ -287,9 +287,26 @@
         async function loadFiles() {
             try {
                 const response = await fetch('https://api.github.com/repos/RishonDev/manjarot2.github.io/contents/');
+                
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        filesList.innerHTML = '<div class="loading">API rate limit exceeded. Please try again later.</div>';
+                    } else if (response.status === 404) {
+                        filesList.innerHTML = '<div class="loading">Repository not found.</div>';
+                    } else {
+                        filesList.innerHTML = '<div class="loading">Error loading files. Please try again later.</div>';
+                    }
+                    return;
+                }
+                
                 const files = await response.json();
                 
                 filesList.innerHTML = '';
+                
+                if (!Array.isArray(files)) {
+                    filesList.innerHTML = '<div class="loading">Unexpected response format.</div>';
+                    return;
+                }
                 
                 if (files.length === 0) {
                     filesList.innerHTML = '<div class="loading">No files found in this repository.</div>';
