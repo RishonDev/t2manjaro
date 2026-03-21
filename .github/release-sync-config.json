@@ -1,0 +1,8 @@
+{
+  "source_repo": "RishonDev/manjaro-kernel-t2",
+  "source_asset_pattern": "^linux618-t2(|-headers)-.*\\.pkg\\.tar\\.zst$",
+  "target_repo": "RishonDev/t2manjaro",
+  "target_release_tag": "2601",
+  "target_repo_db_name": "t2manjaro",
+  "target_asset_cleanup_pattern": "^linux618-t2(|-headers)-.*\\.pkg\\.tar\\.zst$"
+}

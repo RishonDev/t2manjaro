@@ -1,0 +1,50 @@
+name: Kernel Repo Update Bot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kernel-repo-update-bot
+  cancel-in-progress: false
+
+jobs:
+  update-kernel-repo-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Install pacman repo tooling
+        run: |
+          docker pull archlinux:base-devel
+
+      - name: Install repo-add wrapper
+        run: |
+          sudo tee /usr/local/bin/repo-add >/dev/null <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD:/repo" \
+            -w /repo \
+            archlinux:base-devel \
+            bash -lc 'pacman -Sy --noconfirm pacman-contrib >/dev/null && repo-add "$@"' -- "$@"
+          EOF
+          sudo chmod +x /usr/local/bin/repo-add
+
+      - name: Sync latest built kernel packages into the release-backed pacman repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash ./scripts/sync-kernel-release-repo.sh
